@@ -7,13 +7,15 @@ import { Navbar } from 'components'
 import Exchange from 'pages/Exchange'
 
 function App() {
-  const { isWeb3Enabled, enableWeb3, web3EnableError } = useMoralis()
+  const { isWeb3Enabled, enableWeb3, web3EnableError, isAuthenticated } = useMoralis()
 
   useEffect(() => {
     enableWeb3()
-  }, [enableWeb3])
+    // eslint-disable-next-line
+  }, [])
 
   if (web3EnableError) {
+    console.log(web3EnableError)
     return (
       <Box textAlign="center" my={12}>
         <Heading fontSize="2xl" my={3}>

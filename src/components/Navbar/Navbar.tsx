@@ -6,8 +6,13 @@ import { getEllipsisText } from 'utils/formatters'
 import NavbarLink from './NavbarLink'
 
 const Navbar = () => {
-  const { account, isAuthenticated, authenticate, logout } = useMoralis()
+  const { account, isAuthenticated, authenticate, logout, enableWeb3 } = useMoralis()
   const { isOpen, onOpen, onClose } = useDisclosure()
+
+  const disconnect = () => {
+    logout()
+    enableWeb3()
+  }
 
   return (
     <Box px={4}>
@@ -26,7 +31,7 @@ const Navbar = () => {
           {account && isAuthenticated ? (
             <Flex>
               <Box py={2}>{getEllipsisText(account)}</Box>
-              <NavbarLink onClick={logout}>Disconnect</NavbarLink>
+              <NavbarLink onClick={disconnect}>Disconnect</NavbarLink>
             </Flex>
           ) : (
             <NavbarLink onClick={authenticate}>Connect To Wallet</NavbarLink>

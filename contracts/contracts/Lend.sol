@@ -14,12 +14,11 @@ contract Lend is ReentrancyGuard {
     address public admin;
     uint256 public nativeRate;
     uint256 public premium; // 100 = 1%
+    uint256 public rateMultiplier = 100;
 
     mapping(address => uint256) public rates;
     mapping(address => uint256) public nativeBalances;
     mapping(address => mapping(address => uint256)) public balances;
-
-    uint256 public RATE_MULTIPLIER = 100;
 
     constructor(address _admin, address _token, uint256 _nativeRate, uint256 _premium) {
         admin = _admin;
@@ -46,7 +45,7 @@ contract Lend is ReentrancyGuard {
         uint256 amountWithPremium = (_amount * (10000 + premium)) / 10000;
         require(IERC20(_depositToken).balanceOf(msg.sender) >= amountWithPremium, "Not enough funds");
         
-        uint256 tokensToReturn = _amount * rates[_depositToken] / RATE_MULTIPLIER;
+        uint256 tokensToReturn = _amount * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
         
         IERC20(_depositToken).transferFrom(msg.sender, address(this), amountWithPremium);
@@ -59,7 +58,7 @@ contract Lend is ReentrancyGuard {
         require(msg.value > 0, "Deposit amount is invalid");
 
         uint256 amountWithoutPremium = (msg.value / (10000 + premium)) * 10000;
-        uint256 tokensToReturn = amountWithoutPremium * nativeRate / RATE_MULTIPLIER;
+        uint256 tokensToReturn = amountWithoutPremium * nativeRate / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
 
         token.transferFrom(admin, msg.sender, tokensToReturn);
@@ -71,7 +70,7 @@ contract Lend is ReentrancyGuard {
         require(rates[_depositToken] > 0, "Token not supported");
         require(balances[msg.sender][_depositToken] >= _amount, "Not enough tokens deposited");
 
-        uint256 tokensToGet = _amount * rates[_depositToken] / RATE_MULTIPLIER;
+        uint256 tokensToGet = _amount * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(msg.sender) > tokensToGet, "Not enough tokens");
 
         token.transferFrom(msg.sender, admin, tokensToGet);
@@ -83,7 +82,7 @@ contract Lend is ReentrancyGuard {
     function withdrawNative(uint256 _amount) external nonReentrant notContract {
         require(nativeBalances[msg.sender] >= _amount, "Not enough tokens deposited");
 
-        uint256 tokensToGet = _amount * nativeRate / RATE_MULTIPLIER;
+        uint256 tokensToGet = _amount * nativeRate / rateMultiplier;
         require(token.balanceOf(msg.sender) > tokensToGet, "Not enough tokens");
 
         token.transferFrom(msg.sender, admin, tokensToGet);

@@ -13,10 +13,9 @@ contract Buy is ReentrancyGuard {
     IERC20 public token;
     address public admin;
     uint256 public nativeRate;
+    uint256 public rateMultiplier = 100;
 
     mapping(address => uint256) public rates;
-
-    uint256 public RATE_MULTIPLIER = 100;
 
     constructor(address _admin, address _token, uint256 _nativeRate) {
         admin = _admin;
@@ -40,7 +39,7 @@ contract Buy is ReentrancyGuard {
         require(rates[_depositToken] > 0, "Token not supported");
         require(IERC20(_depositToken).balanceOf(msg.sender) >= _amount, "Not enough funds");
         
-        uint256 tokensToReturn = _amount * rates[_depositToken] / RATE_MULTIPLIER;
+        uint256 tokensToReturn = _amount * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
         
         IERC20(_depositToken).transferFrom(msg.sender, address(this), _amount);
@@ -50,7 +49,7 @@ contract Buy is ReentrancyGuard {
     function depositNative() payable external nonReentrant notContract {
         require(msg.value > 0, "Deposit amount is invalid");
 
-        uint256 tokensToReturn = msg.value * nativeRate / RATE_MULTIPLIER;
+        uint256 tokensToReturn = msg.value * nativeRate / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
 
         token.transferFrom(admin, msg.sender, tokensToReturn);
