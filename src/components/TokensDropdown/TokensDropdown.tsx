@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Menu, MenuButton, MenuList, MenuItem, Image, Button, Flex } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { DepositToken } from 'types'
-import { depositTokens } from 'data/depositTokens'
 
 type Props = {
+  tokens: DepositToken[]
+  selected: DepositToken
   onChange: (token: DepositToken) => void
 }
 
-const TokensDropdown = ({ onChange }: Props) => {
-  const [selected, setSelected] = useState(depositTokens[0])
-
+const TokensDropdown = ({ tokens, selected, onChange }: Props) => {
   useEffect(() => {
     onChange(selected)
     // eslint-disable-next-line
@@ -25,8 +24,8 @@ const TokensDropdown = ({ onChange }: Props) => {
         </Flex>
       </MenuButton>
       <MenuList>
-        {depositTokens.map(token => (
-          <MenuItem minH="48px" onClick={() => setSelected(token)}>
+        {tokens.map(token => (
+          <MenuItem key={token.address} minH="48px" onClick={() => onChange(token)}>
             <Image boxSize="1.5rem" src={token.icon} mr={3} />
             <span>{token.symbol}</span>
           </MenuItem>

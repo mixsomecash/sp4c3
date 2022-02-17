@@ -1,17 +1,29 @@
-import React, { useState, ChangeEvent } from 'react'
-import { Box, Center, Spinner, Input, Flex, Image, Button } from '@chakra-ui/react'
+import React, { useState, useEffect, ChangeEvent } from 'react'
+import { Box, Center, Spinner, Input, Button } from '@chakra-ui/react'
 import { useBuyContract } from 'hooks/useBuyContract'
 import { TokensDropdown } from 'components'
+import { depositTokens } from 'data/depositTokens'
 
 const ExchangeCard = () => {
-  const { nativeRate, rateMultiplier, depositNative } = useBuyContract()
+  const [selectedToken, setSelectedToken] = useState(depositTokens[0])
   const [depositAmount, setDepositAmount] = useState<number | null>(null)
   const [receivableAmount, setReceivableAmount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (!nativeRate || !rateMultiplier) {
+  const { tokenRate, rateMultiplier, deposit } = useBuyContract({
+    selectedTokenAddress: selectedToken.address,
+  })
+
+  const getReceivableAmount = (value: number) => {
+    if (!tokenRate || !rateMultiplier) {
+      return 0
+    }
+    return (value * tokenRate) / rateMultiplier
+  }
+
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!tokenRate || !rateMultiplier) {
       return
     }
     const value = parseFloat(event.target.value)
@@ -23,7 +35,6 @@ const ExchangeCard = () => {
     }
 
     setDepositAmount(value)
-    setReceivableAmount((value * nativeRate) / rateMultiplier)
   }
 
   const onConfirm = async () => {
@@ -32,7 +43,7 @@ const ExchangeCard = () => {
       return
     }
     setIsLoading(true)
-    await depositNative(depositAmount).catch(ex => {
+    await deposit(depositAmount).catch(ex => {
       setErrorMessage(`${ex.message} ${ex.data.message}`)
     })
     setIsLoading(false)
@@ -40,11 +51,20 @@ const ExchangeCard = () => {
     setReceivableAmount(0)
   }
 
+  useEffect(() => {
+    setReceivableAmount(getReceivableAmount(depositAmount ?? 0))
+    // eslint-disable-next-line
+  }, [tokenRate, depositAmount])
+
   return (
     <Box bg="gray.800" py={12} px={16} borderRadius="xl">
       <Box mb={6}>
         <Box my={3}>
-          <TokensDropdown onChange={() => {}} />
+          <TokensDropdown
+            tokens={depositTokens}
+            selected={selectedToken}
+            onChange={setSelectedToken}
+          />
         </Box>
         <Input
           type="number"
@@ -54,7 +74,7 @@ const ExchangeCard = () => {
           textAlign="center"
           placeholder="0.00"
           value={depositAmount !== null ? depositAmount : ''}
-          onChange={onInputChange}
+          onChange={onChange}
         />
       </Box>
       <Box mb={6}>
