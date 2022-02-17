@@ -33,6 +33,10 @@ module.exports = {
       url: 'https://bsc-dataseed.binance.org/',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    bscTest: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Avalanche: {
       url: 'https://speedy-nodes-nyc.moralis.io/64377b9221a84ca54dc5519b/avalanche/mainnet',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],

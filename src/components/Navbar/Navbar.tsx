@@ -36,7 +36,8 @@ const Navbar = () => {
           ) : (
             <NavbarLink onClick={authenticate}>Connect To Wallet</NavbarLink>
           )}
-          <NavbarLink target="/">Main</NavbarLink>
+          <NavbarLink target="/">Buy</NavbarLink>
+          <NavbarLink target="/lend">Lend / Borrow</NavbarLink>
         </Flex>
       </Flex>
 

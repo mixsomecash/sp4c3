@@ -4,10 +4,11 @@ import { Box, Heading, Spinner, Image } from '@chakra-ui/react'
 import { useMoralis } from 'react-moralis'
 import './index.css'
 import { Navbar } from 'components'
-import Exchange from 'pages/Exchange'
+import Buy from 'pages/Buy'
+import Lend from 'pages/Lend'
 
 function App() {
-  const { isWeb3Enabled, enableWeb3, web3EnableError, isAuthenticated } = useMoralis()
+  const { isWeb3Enabled, enableWeb3, web3EnableError } = useMoralis()
 
   useEffect(() => {
     enableWeb3()
@@ -49,7 +50,10 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <Route exact path="/">
-          <Exchange />
+          <Buy />
+        </Route>
+        <Route exact path="/lend">
+          <Lend />
         </Route>
       </BrowserRouter>
     </div>

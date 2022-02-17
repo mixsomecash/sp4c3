@@ -1,18 +1,24 @@
 import React, { useState, useEffect, ChangeEvent } from 'react'
 import { Box, Center, Spinner, Input, Button } from '@chakra-ui/react'
-import { useBuyContract } from 'hooks/useBuyContract'
+import { useTokenTradeContract } from 'hooks/useTokenTradeContract'
 import { TokensDropdown } from 'components'
 import { depositTokens } from 'data/depositTokens'
 
-const ExchangeCard = () => {
+type Props = {
+  contractType: 'buy' | 'lend'
+  actionType?: 'deposit' | 'withdraw'
+}
+
+const ExchangeCard = ({ contractType, actionType }: Props) => {
   const [selectedToken, setSelectedToken] = useState(depositTokens[0])
   const [depositAmount, setDepositAmount] = useState<number | null>(null)
   const [receivableAmount, setReceivableAmount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const { tokenRate, rateMultiplier, deposit } = useBuyContract({
+  const { tokenRate, rateMultiplier, deposit } = useTokenTradeContract({
     selectedTokenAddress: selectedToken.address,
+    contractType,
   })
 
   const getReceivableAmount = (value: number) => {

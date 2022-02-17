@@ -1,25 +1,33 @@
 import { useEffect, useState } from 'react'
 import Moralis from 'moralis'
 import buyAbi from 'data/abi/Buy.json'
+import lendAbi from 'data/abi/Lend.json'
+import { contracts } from 'data/contracts'
 
-const CONTRACT_ADDRESS = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'
+type Props = {
+  selectedTokenAddress: string
+  contractType: 'buy' | 'lend'
+}
 
-export const useBuyContract = ({ selectedTokenAddress }) => {
+export const useTokenTradeContract = ({ selectedTokenAddress, contractType }: Props) => {
   const [tokenRate, setTokenRate] = useState<number | null>(null)
   const [rateMultiplier, setRateMultiplier] = useState<number | null>(null)
+
+  const contractAddress = contractType === 'buy' ? contracts.buy.address : contracts.lend.address
+  const abi = contractType === 'lend' ? lendAbi : buyAbi
 
   const fetch = async () => {
     const rate =
       selectedTokenAddress === 'native'
         ? await Moralis.executeFunction({
             functionName: 'nativeRate',
-            contractAddress: CONTRACT_ADDRESS,
-            abi: buyAbi,
+            contractAddress,
+            abi,
           })
         : await Moralis.executeFunction({
             functionName: 'rates',
-            contractAddress: CONTRACT_ADDRESS,
-            abi: buyAbi,
+            contractAddress,
+            abi,
             params: { '': selectedTokenAddress },
           })
     if (rate) {
@@ -31,15 +39,15 @@ export const useBuyContract = ({ selectedTokenAddress }) => {
     if (selectedTokenAddress === 'native') {
       await Moralis.executeFunction({
         functionName: 'depositNative',
-        contractAddress: CONTRACT_ADDRESS,
-        abi: buyAbi,
+        contractAddress,
+        abi,
         msgValue: Moralis.Units.Token(amount),
       })
     } else {
       await Moralis.executeFunction({
         functionName: 'deposit',
-        contractAddress: CONTRACT_ADDRESS,
-        abi: buyAbi,
+        contractAddress,
+        abi,
         params: { _depositToken: selectedTokenAddress, _amount: Moralis.Units.Token(amount) },
       })
     }
@@ -49,14 +57,14 @@ export const useBuyContract = ({ selectedTokenAddress }) => {
     ;(async () => {
       const multiplier = await Moralis.executeFunction({
         functionName: 'rateMultiplier',
-        contractAddress: CONTRACT_ADDRESS,
-        abi: buyAbi,
+        contractAddress,
+        abi,
       })
       if (multiplier) {
         setRateMultiplier(parseInt(multiplier as any, 10))
       }
     })()
-  }, [])
+  }, [contractAddress, abi])
 
   useEffect(() => {
     fetch()
