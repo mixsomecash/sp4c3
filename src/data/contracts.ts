@@ -5,6 +5,6 @@ export const contracts = {
     address: '0xd599B73520c70b66eB99ca859BDDF38712c74683',
   },
   lend: {
-    address: '0xec8F5c474233AB752833fBA0E7BFF992b3D072eC',
+    address: '0x06F759814cbCC17043560BE1F8ae180b8De85263',
   },
 }
