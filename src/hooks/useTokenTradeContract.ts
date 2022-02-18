@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Moralis from 'moralis'
 import { useMoralis } from 'react-moralis'
-import { contracts } from 'data/contracts'
 import { ContractInfo } from 'types/contract'
 
 type Props = {
@@ -9,13 +8,21 @@ type Props = {
   contractInfo: ContractInfo
 }
 
+const PREMIUM_MULTIPLIER = 10000
+
 export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Props) => {
   const { account, isAuthenticated } = useMoralis()
   const [tokenRate, setTokenRate] = useState<number | null>(null)
   const [rateMultiplier, setRateMultiplier] = useState<number | null>(null)
-  const [accountDepositBalance, setAccountDepositBalance] = useState<number | null>(null)
+  const [premium, setPremium] = useState<number>(0)
+  const [accountDepositedBalance, setAccountDepositedBalance] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const fetch = async () => {
+    if (!rateMultiplier) {
+      return
+    }
+    setIsLoading(true)
     const rate =
       selectedTokenAddress === 'native'
         ? await Moralis.executeFunction({
@@ -30,9 +37,14 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Pr
             params: { _token: selectedTokenAddress },
           })
     if (rate) {
-      setTokenRate(parseInt(rate as any, 10))
+      setTokenRate(parseInt(rate as any, 10) / rateMultiplier)
     }
     if (contractInfo.type === 'lend' && account && isAuthenticated) {
+      const contractPremium = await Moralis.executeFunction({
+        functionName: 'premium',
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
+      })
       const balance =
         selectedTokenAddress === 'native'
           ? await Moralis.executeFunction({
@@ -47,45 +59,51 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Pr
               abi: contractInfo.abi,
               params: { _account: account, _token: selectedTokenAddress },
             })
-      if (balance) {
-        setAccountDepositBalance(parseInt(balance as any, 10))
+      if (contractPremium && balance) {
+        setPremium(parseInt(contractPremium as any, 10) / PREMIUM_MULTIPLIER)
+        setAccountDepositedBalance(`${balance}`)
       }
     }
+    setIsLoading(false)
   }
 
   const deposit = async (amount: number) => {
     if (selectedTokenAddress === 'native') {
-      await Moralis.executeFunction({
+      const transaction = (await Moralis.executeFunction({
         functionName: 'depositNative',
         contractAddress: contractInfo.address,
         abi: contractInfo.abi,
         msgValue: Moralis.Units.Token(amount),
-      })
+      })) as any
+      await transaction.wait()
     } else {
-      await Moralis.executeFunction({
+      const transaction = (await Moralis.executeFunction({
         functionName: 'deposit',
         contractAddress: contractInfo.address,
         abi: contractInfo.abi,
         params: { _depositToken: selectedTokenAddress, _amount: Moralis.Units.Token(amount) },
-      })
+      })) as any
+      await transaction.wait()
     }
   }
 
   const withdraw = async (amount: number) => {
     if (selectedTokenAddress === 'native') {
-      await Moralis.executeFunction({
+      const transaction = (await Moralis.executeFunction({
         functionName: 'withdrawNative',
         contractAddress: contractInfo.address,
         abi: contractInfo.abi,
-        msgValue: Moralis.Units.Token(amount),
-      })
+        params: { _amount: Moralis.Units.Token(amount) },
+      })) as any
+      await transaction.wait()
     } else {
-      await Moralis.executeFunction({
+      const transaction = (await Moralis.executeFunction({
         functionName: 'withdraw',
         contractAddress: contractInfo.address,
         abi: contractInfo.abi,
         params: { _depositToken: selectedTokenAddress, _amount: Moralis.Units.Token(amount) },
-      })
+      })) as any
+      await transaction.wait()
     }
   }
 
@@ -105,7 +123,15 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Pr
   useEffect(() => {
     fetch()
     // eslint-disable-next-line
-  }, [selectedTokenAddress, account, isAuthenticated])
+  }, [selectedTokenAddress, rateMultiplier, account, isAuthenticated])
 
-  return { tokenRate, rateMultiplier, accountDepositBalance, deposit, withdraw }
+  return {
+    tokenRate,
+    rateMultiplier,
+    accountDepositedBalance,
+    premium,
+    isLoading,
+    deposit,
+    withdraw,
+  }
 }
