@@ -1,16 +1,17 @@
 import React from 'react'
 import { Box, Container } from '@chakra-ui/react'
 import { ExchangeCard } from 'components'
+import { contracts } from 'data/contracts'
 
-const Lend = () => {
+const Withdraw = () => {
   return (
-    <Container maxW="500px">
+    <Container maxW="450px">
       <Box fontSize="4xl" fontWeight="bold" textAlign="center" py={16}>
-        LEND / BORROW
+        WITHDRAW
       </Box>
-      <ExchangeCard contractType="lend" />
+      <ExchangeCard contractInfo={contracts.lend} type="withdraw" />
     </Container>
   )
 }
 
-export default Lend
+export default Withdraw

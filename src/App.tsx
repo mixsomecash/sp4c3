@@ -5,7 +5,8 @@ import { useMoralis } from 'react-moralis'
 import './index.css'
 import { Navbar } from 'components'
 import Buy from 'pages/Buy'
-import Lend from 'pages/Lend'
+import Deposit from 'pages/Deposit'
+import Withdraw from 'pages/Withdraw'
 
 function App() {
   const { isWeb3Enabled, enableWeb3, web3EnableError } = useMoralis()
@@ -52,8 +53,11 @@ function App() {
         <Route exact path="/">
           <Buy />
         </Route>
-        <Route exact path="/lend">
-          <Lend />
+        <Route exact path="/deposit">
+          <Deposit />
+        </Route>
+        <Route exact path="/withdraw">
+          <Withdraw />
         </Route>
       </BrowserRouter>
     </div>

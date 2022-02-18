@@ -37,7 +37,8 @@ const Navbar = () => {
             <NavbarLink onClick={authenticate}>Connect To Wallet</NavbarLink>
           )}
           <NavbarLink target="/">Buy</NavbarLink>
-          <NavbarLink target="/lend">Lend / Borrow</NavbarLink>
+          <NavbarLink target="/deposit">Deposit</NavbarLink>
+          <NavbarLink target="/withdraw">Withdraw</NavbarLink>
         </Flex>
       </Flex>
 

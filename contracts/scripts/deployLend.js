@@ -4,7 +4,7 @@ async function main() {
   const RATE_MULTIPLIER = 100
 
   const ADMIN_ADDRESS = deployer.address
-  const TOKEN = '0x9376495f279ef7c99b91a24ee373d784cc74b09e'
+  const TOKEN = '0x3A0C9d181Afc5D88827A100B83716E9B412845Ac'
   const NATIVE_RATE = 2000 * RATE_MULTIPLIER
   const PREMIUM = 100
 
@@ -17,7 +17,7 @@ async function main() {
   console.log('Contract address:', contract.address)
 
   console.log('Setting rates...')
-  await contract.setRate('0xdAC17F958D2ee523a2206206994597C13D831ec7', 4 * RATE_MULTIPLIER)
+  await contract.setRate('0x74fB2AA2d340c28803AB1c34dD4A701B4e298095', 4 * RATE_MULTIPLIER)
   console.log('Done.')
 }
 

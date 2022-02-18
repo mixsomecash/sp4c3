@@ -1,24 +1,34 @@
 import React, { useState, useEffect, ChangeEvent } from 'react'
-import { Box, Center, Spinner, Input, Button } from '@chakra-ui/react'
+import { Box, Center, Spinner, Input, Flex } from '@chakra-ui/react'
+import Moralis from 'moralis'
+import { useNativeBalance, useERC20Balances } from 'react-moralis'
 import { useTokenTradeContract } from 'hooks/useTokenTradeContract'
-import { TokensDropdown } from 'components'
+import { TokensDropdown, PrimaryButton } from 'components'
 import { depositTokens } from 'data/depositTokens'
+import { useTokenApproval } from 'hooks/useTokenApproval'
+import { ContractInfo } from 'types/contract'
 
 type Props = {
-  contractType: 'buy' | 'lend'
-  actionType?: 'deposit' | 'withdraw'
+  contractInfo: ContractInfo
+  type?: 'deposit' | 'withdraw'
 }
 
-const ExchangeCard = ({ contractType, actionType }: Props) => {
+const ExchangeCard = ({ contractInfo, type }: Props) => {
   const [selectedToken, setSelectedToken] = useState(depositTokens[0])
   const [depositAmount, setDepositAmount] = useState<number | null>(null)
   const [receivableAmount, setReceivableAmount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const { tokenRate, rateMultiplier, deposit } = useTokenTradeContract({
+  const { data: nativeBalance } = useNativeBalance()
+  const { data: erc20balances } = useERC20Balances()
+  const { tokenRate, rateMultiplier, accountDepositBalance, deposit } = useTokenTradeContract({
     selectedTokenAddress: selectedToken.address,
-    contractType,
+    contractInfo,
+  })
+  const { isApproved, approve } = useTokenApproval({
+    tokenAddress: selectedToken.address,
+    spenderAddress: contractInfo.address,
   })
 
   const getReceivableAmount = (value: number) => {
@@ -28,7 +38,7 @@ const ExchangeCard = ({ contractType, actionType }: Props) => {
     return (value * tokenRate) / rateMultiplier
   }
 
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!tokenRate || !rateMultiplier) {
       return
     }
@@ -43,18 +53,26 @@ const ExchangeCard = ({ contractType, actionType }: Props) => {
     setDepositAmount(value)
   }
 
-  const onConfirm = async () => {
+  const handleConfirm = async () => {
     setErrorMessage(null)
     if (!depositAmount) {
       return
     }
     setIsLoading(true)
     await deposit(depositAmount).catch(ex => {
-      setErrorMessage(`${ex.message} ${ex.data.message}`)
+      setErrorMessage(`${ex.message} ${ex.data?.message ?? ''}`)
     })
     setIsLoading(false)
     setDepositAmount(null)
     setReceivableAmount(0)
+  }
+
+  const handleApprove = async () => {
+    setIsLoading(true)
+    await approve().catch(ex => {
+      console.error(ex)
+    })
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -62,8 +80,15 @@ const ExchangeCard = ({ contractType, actionType }: Props) => {
     // eslint-disable-next-line
   }, [tokenRate, depositAmount])
 
+  const accountTokenBalance =
+    selectedToken.address === 'native'
+      ? nativeBalance
+      : erc20balances?.find(
+          balance => balance.token_address.toLowerCase() === selectedToken.address.toLowerCase(),
+        )
+
   return (
-    <Box bg="gray.800" py={12} px={16} borderRadius="xl">
+    <Box bg="gray.800" py={10} px={14} borderRadius="xl">
       <Box mb={6}>
         <Box my={3}>
           <TokensDropdown
@@ -80,8 +105,29 @@ const ExchangeCard = ({ contractType, actionType }: Props) => {
           textAlign="center"
           placeholder="0.00"
           value={depositAmount !== null ? depositAmount : ''}
-          onChange={onChange}
+          onChange={handleChange}
         />
+        <Box mt={2}>
+          {accountDepositBalance !== null && (
+            <Flex mt={1} alignItems="center" justifyContent="space-between">
+              <Box fontSize="sm">Deposited</Box>
+              <Box fontSize="lg" fontWeight="bold">
+                {accountDepositBalance.toFixed(4)} {selectedToken.symbol}
+              </Box>
+            </Flex>
+          )}
+          {accountTokenBalance !== undefined && (
+            <Flex mt={1} alignItems="center" justifyContent="space-between">
+              <Box fontSize="sm">In wallet</Box>
+              <Box fontSize="lg" fontWeight="bold">
+                {accountTokenBalance.balance !== undefined
+                  ? parseFloat(Moralis.Units.FromWei(accountTokenBalance.balance, 18)).toFixed(4)
+                  : '-'}{' '}
+                {selectedToken.symbol}
+              </Box>
+            </Flex>
+          )}
+        </Box>
       </Box>
       <Box mb={6}>
         <Box fontSize="lg" fontWeight="bold" mb={1}>
@@ -92,23 +138,14 @@ const ExchangeCard = ({ contractType, actionType }: Props) => {
         </Box>
       </Box>
       <Box>
-        {!isLoading ? (
-          <Button
-            w="100%"
-            fontSize="lg"
-            fontWeight="bold"
-            mb={1}
-            bg="rgba(247,147,30)"
-            textColor="gray.800"
-            _hover={{ bg: 'rgba(207,107,0)' }}
-            onClick={onConfirm}
-          >
-            Confirm
-          </Button>
-        ) : (
+        {isLoading && (
           <Center>
             <Spinner size="lg" />
           </Center>
+        )}
+        {!isLoading && isApproved && <PrimaryButton onClick={handleConfirm}>Confirm</PrimaryButton>}
+        {!isLoading && !isApproved && (
+          <PrimaryButton onClick={handleApprove}>Approve</PrimaryButton>
         )}
       </Box>
       {errorMessage && (

@@ -55,12 +55,20 @@ contract Buy is ReentrancyGuard {
         token.transferFrom(admin, msg.sender, tokensToReturn);
     }
 
-    function setRate(address _token, uint256 _rate) external onlyAdmin {
+    function getRate(address _token) external view returns(uint256) {
+        return rates[_token];
+    }
+
+    function setRate(address _token, uint256 _rate) external nonReentrant onlyAdmin {
         rates[_token] = _rate;
     }
 
-    function setNativeRate(uint256 _rate) external onlyAdmin {
+    function setNativeRate(uint256 _rate) external nonReentrant onlyAdmin {
         nativeRate = _rate;
+    }
+
+    function setAdmin(address _admin) external nonReentrant onlyAdmin {
+        admin = _admin;
     }
 
     function recoverToken(address _token, uint256 _amount) external onlyAdmin {

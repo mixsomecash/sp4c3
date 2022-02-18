@@ -91,6 +91,18 @@ contract Lend is ReentrancyGuard {
         nativeBalances[msg.sender] -= _amount;
     }
 
+    function getRate(address _token) external view returns(uint256) {
+        return rates[_token];
+    }
+
+    function getBalance(address _account, address _token) external view returns(uint256) {
+        return balances[_account][_token];
+    }
+    
+    function getNativeBalance(address _account) external view returns(uint256) {
+        return nativeBalances[_account];
+    }
+
     function setRate(address _token, uint256 _rate) external onlyAdmin {
         rates[_token] = _rate;
     }
@@ -101,6 +113,10 @@ contract Lend is ReentrancyGuard {
 
     function setNativeRate(uint256 _rate) external onlyAdmin {
         nativeRate = _rate;
+    }
+    
+    function setAdmin(address _admin) external nonReentrant onlyAdmin {
+        admin = _admin;
     }
 
     function recoverToken(address _token, uint256 _amount) external onlyAdmin {

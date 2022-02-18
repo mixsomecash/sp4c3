@@ -1,37 +1,55 @@
 import { useEffect, useState } from 'react'
 import Moralis from 'moralis'
-import buyAbi from 'data/abi/Buy.json'
-import lendAbi from 'data/abi/Lend.json'
+import { useMoralis } from 'react-moralis'
 import { contracts } from 'data/contracts'
+import { ContractInfo } from 'types/contract'
 
 type Props = {
   selectedTokenAddress: string
-  contractType: 'buy' | 'lend'
+  contractInfo: ContractInfo
 }
 
-export const useTokenTradeContract = ({ selectedTokenAddress, contractType }: Props) => {
+export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Props) => {
+  const { account, isAuthenticated } = useMoralis()
   const [tokenRate, setTokenRate] = useState<number | null>(null)
   const [rateMultiplier, setRateMultiplier] = useState<number | null>(null)
-
-  const contractAddress = contractType === 'buy' ? contracts.buy.address : contracts.lend.address
-  const abi = contractType === 'lend' ? lendAbi : buyAbi
+  const [accountDepositBalance, setAccountDepositBalance] = useState<number | null>(null)
 
   const fetch = async () => {
     const rate =
       selectedTokenAddress === 'native'
         ? await Moralis.executeFunction({
             functionName: 'nativeRate',
-            contractAddress,
-            abi,
+            contractAddress: contractInfo.address,
+            abi: contractInfo.abi,
           })
         : await Moralis.executeFunction({
-            functionName: 'rates',
-            contractAddress,
-            abi,
-            params: { '': selectedTokenAddress },
+            functionName: 'getRate',
+            contractAddress: contractInfo.address,
+            abi: contractInfo.abi,
+            params: { _token: selectedTokenAddress },
           })
     if (rate) {
       setTokenRate(parseInt(rate as any, 10))
+    }
+    if (contractInfo.type === 'lend' && account && isAuthenticated) {
+      const balance =
+        selectedTokenAddress === 'native'
+          ? await Moralis.executeFunction({
+              functionName: 'getNativeBalance',
+              contractAddress: contractInfo.address,
+              abi: contractInfo.abi,
+              params: { _account: account },
+            })
+          : await Moralis.executeFunction({
+              functionName: 'getBalance',
+              contractAddress: contractInfo.address,
+              abi: contractInfo.abi,
+              params: { _account: account, _token: selectedTokenAddress },
+            })
+      if (balance) {
+        setAccountDepositBalance(parseInt(balance as any, 10))
+      }
     }
   }
 
@@ -39,15 +57,33 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractType }: Pr
     if (selectedTokenAddress === 'native') {
       await Moralis.executeFunction({
         functionName: 'depositNative',
-        contractAddress,
-        abi,
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
         msgValue: Moralis.Units.Token(amount),
       })
     } else {
       await Moralis.executeFunction({
         functionName: 'deposit',
-        contractAddress,
-        abi,
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
+        params: { _depositToken: selectedTokenAddress, _amount: Moralis.Units.Token(amount) },
+      })
+    }
+  }
+
+  const withdraw = async (amount: number) => {
+    if (selectedTokenAddress === 'native') {
+      await Moralis.executeFunction({
+        functionName: 'withdrawNative',
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
+        msgValue: Moralis.Units.Token(amount),
+      })
+    } else {
+      await Moralis.executeFunction({
+        functionName: 'withdraw',
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
         params: { _depositToken: selectedTokenAddress, _amount: Moralis.Units.Token(amount) },
       })
     }
@@ -57,19 +93,19 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractType }: Pr
     ;(async () => {
       const multiplier = await Moralis.executeFunction({
         functionName: 'rateMultiplier',
-        contractAddress,
-        abi,
+        contractAddress: contractInfo.address,
+        abi: contractInfo.abi,
       })
       if (multiplier) {
         setRateMultiplier(parseInt(multiplier as any, 10))
       }
     })()
-  }, [contractAddress, abi])
+  }, [contractInfo])
 
   useEffect(() => {
     fetch()
     // eslint-disable-next-line
-  }, [selectedTokenAddress])
+  }, [selectedTokenAddress, account, isAuthenticated])
 
-  return { tokenRate, rateMultiplier, deposit }
+  return { tokenRate, rateMultiplier, accountDepositBalance, deposit, withdraw }
 }

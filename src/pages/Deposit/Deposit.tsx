@@ -3,15 +3,15 @@ import { Box, Container } from '@chakra-ui/react'
 import { ExchangeCard } from 'components'
 import { contracts } from 'data/contracts'
 
-const Buy = () => {
+const Deposit = () => {
   return (
     <Container maxW="450px">
       <Box fontSize="4xl" fontWeight="bold" textAlign="center" py={16}>
-        BUY
+        DEPOSIT
       </Box>
-      <ExchangeCard contractInfo={contracts.buy} />
+      <ExchangeCard contractInfo={contracts.lend} type="deposit" />
     </Container>
   )
 }
 
-export default Buy
+export default Deposit

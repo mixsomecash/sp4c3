@@ -1,3 +1,4 @@
+export { default as PrimaryButton } from './PrimaryButton/PrimaryButton'
 export { default as ErrorMessage } from './ErrorMessage/ErrorMessage'
 export { default as ExchangeCard } from './ExchangeCard/ExchangeCard'
 export { default as Modal } from './Modal/Modal'
