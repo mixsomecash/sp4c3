@@ -2,7 +2,7 @@ import { ContractInfo } from 'types/contract'
 import buyAbi from 'data/abi/Buy.json'
 import lendAbi from 'data/abi/Lend.json'
 
-export const chainId = '0x1'
+export const chainId = '0x61'
 
 export const contracts: { [key: string]: ContractInfo } = {
   buy: {

@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react'
 import { Box, Heading, Spinner } from '@chakra-ui/react'
 import { useMoralis } from 'react-moralis'
+import { chainId as requiredChainId } from 'data/contracts'
+import { networkConfigs } from 'data/networks'
 
 type Props = {
   children: any
 }
 
 const RequireWeb3 = ({ children }: Props) => {
-  const { isWeb3Enabled, enableWeb3, web3EnableError, account, isAuthenticated } = useMoralis()
+  const { isWeb3Enabled, enableWeb3, web3EnableError, account, chainId, isAuthenticated } =
+    useMoralis()
 
   useEffect(() => {
     if (!isWeb3Enabled) {
@@ -41,6 +44,16 @@ const RequireWeb3 = ({ children }: Props) => {
       <Box textAlign="center" my={24}>
         <Heading fontSize="2xl" my={3}>
           Please connect to your wallet
+        </Heading>
+      </Box>
+    )
+  }
+
+  if (chainId !== requiredChainId) {
+    return (
+      <Box textAlign="center" my={24}>
+        <Heading fontSize="2xl" my={3}>
+          Please switch to {networkConfigs[requiredChainId].chainName} network
         </Heading>
       </Box>
     )
