@@ -10,7 +10,9 @@ const RequireWeb3 = ({ children }: Props) => {
   const { isWeb3Enabled, enableWeb3, web3EnableError, account, isAuthenticated } = useMoralis()
 
   useEffect(() => {
-    enableWeb3()
+    if (!isWeb3Enabled) {
+      enableWeb3()
+    }
     // eslint-disable-next-line
   }, [])
 
