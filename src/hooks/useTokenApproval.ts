@@ -33,7 +33,7 @@ export const useTokenApproval = ({ tokenAddress, spenderAddress }: Props) => {
   }
 
   const approve = async () => {
-    await Moralis.executeFunction({
+    const transaction = (await Moralis.executeFunction({
       functionName: 'approve',
       contractAddress: tokenAddress,
       abi: tokenAbi,
@@ -41,7 +41,8 @@ export const useTokenApproval = ({ tokenAddress, spenderAddress }: Props) => {
         spender: spenderAddress,
         amount: '1157920892373161954235709850086879078',
       },
-    })
+    })) as any
+    await transaction.wait()
   }
 
   useEffect(() => {

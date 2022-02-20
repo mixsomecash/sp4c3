@@ -21,13 +21,27 @@ const ExchangeCard = ({ contractInfo, type }: Props) => {
   const [isConfirming, setIsConfirming] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const { data: nativeBalance } = useNativeBalance()
-  const { data: erc20balances } = useERC20Balances()
-  const { tokenRate, accountDepositedBalance, premium, isLoading, deposit, withdraw } =
-    useTokenTradeContract({
-      selectedTokenAddress: selectedToken.address,
-      contractInfo,
-    })
+  const {
+    data: nativeBalance,
+    isLoading: isNativeBalanceLoading,
+    getBalances: fetchNativeBalance,
+  } = useNativeBalance()
+  const {
+    data: erc20balances,
+    isLoading: isErc20BalancesLoading,
+    fetchERC20Balances,
+  } = useERC20Balances()
+  const {
+    tokenRate,
+    accountDepositedBalance,
+    premium,
+    isLoading: isContractLoading,
+    deposit,
+    withdraw,
+  } = useTokenTradeContract({
+    selectedTokenAddress: selectedToken.address,
+    contractInfo,
+  })
   const { isApproved: isDepositTokenApproved, approve: approveDepositToken } = useTokenApproval({
     tokenAddress: selectedToken.address,
     spenderAddress: contractInfo.address,
@@ -36,6 +50,9 @@ const ExchangeCard = ({ contractInfo, type }: Props) => {
     tokenAddress: primaryToken.address,
     spenderAddress: contractInfo.address,
   })
+
+  const isLoading = isContractLoading || isNativeBalanceLoading || isErc20BalancesLoading
+  const depositAmountWithPremium = (depositAmount ?? 0) * (1 + premium)
 
   const getReceivableAmount = (value: number) => {
     if (!tokenRate) {
@@ -71,11 +88,13 @@ const ExchangeCard = ({ contractInfo, type }: Props) => {
         setErrorMessage(`${ex.message} ${ex.data?.message ?? ''}`)
       })
     } else {
-      await deposit(depositAmount).catch(ex => {
+      await deposit(depositAmountWithPremium).catch(ex => {
         console.error(ex)
         setErrorMessage(`${ex.message} ${ex.data?.message ?? ''}`)
       })
     }
+    await fetchNativeBalance()
+    await fetchERC20Balances()
     setIsConfirming(false)
     setDepositAmount(null)
     setReceivableAmount(0)
@@ -143,9 +162,7 @@ const ExchangeCard = ({ contractInfo, type }: Props) => {
               {accountDepositedBalance !== null && type === 'deposit' && (
                 <PropertyLine
                   label="Total + Fees"
-                  value={`${((depositAmount ?? 0) * (1 + premium)).toFixed(4)} ${
-                    selectedToken.symbol
-                  }`}
+                  value={`${depositAmountWithPremium.toFixed(4)} ${selectedToken.symbol}`}
                 />
               )}
               {accountDepositedBalance !== null && (
@@ -156,14 +173,15 @@ const ExchangeCard = ({ contractInfo, type }: Props) => {
                   )} ${selectedToken.symbol}`}
                 />
               )}
-              {accountDepositTokenBalance !== undefined && (
-                <PropertyLine
-                  label="Balance"
-                  value={`${parseFloat(
-                    Moralis.Units.FromWei(accountDepositTokenBalance, 18),
-                  ).toFixed(4)} ${selectedToken.symbol}`}
-                />
-              )}
+
+              <PropertyLine
+                label="Balance"
+                value={`${
+                  accountDepositTokenBalance !== undefined
+                    ? parseFloat(Moralis.Units.FromWei(accountDepositTokenBalance, 18)).toFixed(4)
+                    : 0
+                } ${selectedToken.symbol}`}
+              />
             </Box>
           </Box>
           <Box mb={6}>

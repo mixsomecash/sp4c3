@@ -85,6 +85,7 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Pr
       })) as any
       await transaction.wait()
     }
+    await fetch()
   }
 
   const withdraw = async (amount: number) => {
@@ -105,6 +106,7 @@ export const useTokenTradeContract = ({ selectedTokenAddress, contractInfo }: Pr
       })) as any
       await transaction.wait()
     }
+    await fetch()
   }
 
   useEffect(() => {
