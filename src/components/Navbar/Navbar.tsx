@@ -28,23 +28,25 @@ const Navbar = () => {
           <Image src="/img/logo.png" h="40px" />
         </Box>
         <Flex alignItems="center" display={{ base: 'none', md: 'flex' }}>
+          <NavbarLink target="/">Home</NavbarLink>
+          <NavbarLink target="/buy">Buy</NavbarLink>
+          <NavbarLink target="/deposit">Deposit</NavbarLink>
+          <NavbarLink target="/withdraw">Withdraw</NavbarLink>
+
           {account && isAuthenticated ? (
-            <Flex>
+            <Flex ml={6}>
               <Box py={2}>{getEllipsisText(account)}</Box>
               <NavbarLink onClick={disconnect}>Disconnect</NavbarLink>
             </Flex>
           ) : (
             <NavbarLink onClick={authenticate}>Connect To Wallet</NavbarLink>
           )}
-          <NavbarLink target="/">Buy</NavbarLink>
-          <NavbarLink target="/deposit">Deposit</NavbarLink>
-          <NavbarLink target="/withdraw">Withdraw</NavbarLink>
         </Flex>
       </Flex>
 
       {isOpen ? (
         <Box pb={4} display={{ md: 'none' }} textAlign="center">
-          Mobile functions are not supported yet
+          <NavbarLink target="/">Home</NavbarLink>
         </Box>
       ) : null}
     </Box>
