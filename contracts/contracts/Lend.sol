@@ -41,17 +41,16 @@ contract Lend is ReentrancyGuard {
     function deposit(address _depositToken, uint256 _amount) external nonReentrant notContract {
         require(_amount > 0, "Deposit amount is invalid");
         require(rates[_depositToken] > 0, "Token not supported");
+        require(IERC20(_depositToken).balanceOf(msg.sender) >= _amount, "Not enough funds");
 
-        uint256 amountWithPremium = (_amount * (10000 + premium)) / 10000;
-        require(IERC20(_depositToken).balanceOf(msg.sender) >= amountWithPremium, "Not enough funds");
-        
-        uint256 tokensToReturn = _amount * rates[_depositToken] / rateMultiplier;
+        uint256 amountWithoutPremium = (_amount / (10000 + premium)) * 10000;
+        uint256 tokensToReturn = amountWithoutPremium * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
         
-        IERC20(_depositToken).transferFrom(msg.sender, address(this), amountWithPremium);
+        IERC20(_depositToken).transferFrom(msg.sender, address(this), _amount);
         token.transferFrom(admin, msg.sender, tokensToReturn);
 
-        balances[msg.sender][_depositToken] += _amount;
+        balances[msg.sender][_depositToken] += amountWithoutPremium;
     }
 
     function depositNative() payable external nonReentrant notContract {
@@ -74,7 +73,7 @@ contract Lend is ReentrancyGuard {
         require(token.balanceOf(msg.sender) > tokensToGet, "Not enough tokens");
 
         token.transferFrom(msg.sender, admin, tokensToGet);
-        IERC20(_depositToken).transferFrom(address(this), msg.sender, _amount);
+        IERC20(_depositToken).transfer(msg.sender, _amount);
 
         balances[msg.sender][_depositToken] -= _amount;
     }

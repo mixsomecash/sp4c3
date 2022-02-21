@@ -11,7 +11,7 @@ export const contracts: { [key: string]: ContractInfo } = {
     type: 'buy',
   },
   lend: {
-    address: '0xA45B141E013ea1fDD89A1dF61B9828D4E75D1071',
+    address: '0x9e266268a7451d33b117FdF76C8cfbC51f992d94',
     abi: lendAbi,
     type: 'lend',
   },
