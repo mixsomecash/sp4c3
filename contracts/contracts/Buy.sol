@@ -76,8 +76,7 @@ contract Buy is ReentrancyGuard {
     }
 
     function recoverNativeToken(uint256 _amount) external onlyAdmin {
-        require(msg.sender == admin, "You are not admin!");
-        payable(msg.sender).transfer(address(this).balance);
+        payable(msg.sender).transfer(_amount);
     }
 
     function _isContract(address account) internal view returns (bool) {

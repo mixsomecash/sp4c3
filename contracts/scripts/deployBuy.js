@@ -3,12 +3,12 @@ async function main() {
 
   const RATE_MULTIPLIER = 100
 
-  const ADMIN_ADDRESS = deployer.address
-  const TOKEN = '0x3A0C9d181Afc5D88827A100B83716E9B412845Ac'
-  const NATIVE_RATE = 2000 * RATE_MULTIPLIER
+  const ADMIN_ADDRESS = '0x0D9d3729a5191b298137e744c3e4add3A18e2BeD'
+  const TOKEN = '0xbB594eC36dC60c0245561CDD063f70De0D7ea5E5'
+  const NATIVE_RATE = 675 * RATE_MULTIPLIER
 
-  console.log('Deploying contracts with the account:', deployer.address)
-  console.log('Account balance:', (await deployer.getBalance()).toString())
+  console.log('Deploying contracts with the account:', '0x0D9d3729a5191b298137e744c3e4add3A18e2BeD')
+  //console.log('Account balance:', (await deployer.getBalance()).toString())
 
   const Contract = await ethers.getContractFactory('Buy')
   const contract = await Contract.deploy(ADMIN_ADDRESS, TOKEN, NATIVE_RATE)
@@ -16,7 +16,7 @@ async function main() {
   console.log('Contract address:', contract.address)
 
   console.log('Setting rates...')
-  await contract.setRate('0x74fB2AA2d340c28803AB1c34dD4A701B4e298095', 4 * RATE_MULTIPLIER)
+  await contract.setRate('0x74fB2AA2d340c28803AB1c34dD4A701B4e298095', 0.25 * RATE_MULTIPLIER)
   console.log('Done.')
 }
 

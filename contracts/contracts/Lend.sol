@@ -13,12 +13,16 @@ contract Lend is ReentrancyGuard {
     IERC20 public token;
     address public admin;
     uint256 public nativeRate;
+    uint256 public nativeFees;
+    uint256 public nativeSum;
     uint256 public premium; // 100 = 1%
     uint256 public rateMultiplier = 100;
 
     mapping(address => uint256) public rates;
     mapping(address => uint256) public nativeBalances;
     mapping(address => mapping(address => uint256)) public balances;
+    mapping(address => uint256) public tokenFees;
+    mapping(address => uint256) public tokenSums;
 
     constructor(address _admin, address _token, uint256 _nativeRate, uint256 _premium) {
         admin = _admin;
@@ -46,11 +50,13 @@ contract Lend is ReentrancyGuard {
         uint256 amountWithoutPremium = (_amount / (10000 + premium)) * 10000;
         uint256 tokensToReturn = amountWithoutPremium * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
-        
+
         IERC20(_depositToken).transferFrom(msg.sender, address(this), _amount);
         token.transferFrom(admin, msg.sender, tokensToReturn);
 
         balances[msg.sender][_depositToken] += amountWithoutPremium;
+        tokenFees[_depositToken] += _amount - amountWithoutPremium;
+        tokenSums[_depositToken] += amountWithoutPremium;
     }
 
     function depositNative() payable external nonReentrant notContract {
@@ -63,6 +69,9 @@ contract Lend is ReentrancyGuard {
         token.transferFrom(admin, msg.sender, tokensToReturn);
 
         nativeBalances[msg.sender] += amountWithoutPremium;
+        nativeFees += msg.value - amountWithoutPremium;
+        nativeSum += amountWithoutPremium;
+
     }
 
     function withdraw(address _depositToken, uint256 _amount) external nonReentrant notContract {
@@ -76,6 +85,7 @@ contract Lend is ReentrancyGuard {
         IERC20(_depositToken).transfer(msg.sender, _amount);
 
         balances[msg.sender][_depositToken] -= _amount;
+        tokenSums[_depositToken] -= _amount;
     }
 
     function withdrawNative(uint256 _amount) external nonReentrant notContract {
@@ -88,6 +98,7 @@ contract Lend is ReentrancyGuard {
         payable(msg.sender).transfer(_amount);
 
         nativeBalances[msg.sender] -= _amount;
+        nativeSum -= _amount;
     }
 
     function getRate(address _token) external view returns(uint256) {
@@ -123,8 +134,7 @@ contract Lend is ReentrancyGuard {
     }
 
     function recoverNativeToken(uint256 _amount) external onlyAdmin {
-        require(msg.sender == admin, "You are not admin!");
-        payable(msg.sender).transfer(address(this).balance);
+        payable(msg.sender).transfer(_amount);
     }
 
     function _isContract(address account) internal view returns (bool) {
