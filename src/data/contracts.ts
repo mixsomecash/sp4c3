@@ -6,12 +6,12 @@ export const chainId = '0x61'
 
 export const contracts: { [key: string]: ContractInfo } = {
   buy: {
-    address: '0x4b6776CD54fABB88ED02fd6C67Fdef238cD1bA59',
+    address: '0x18C72C11bb024E8CC5E5f0DF1D80eDD3B1437D4e',
     abi: buyAbi,
     type: 'buy',
   },
   lend: {
-    address: '0x9e266268a7451d33b117FdF76C8cfbC51f992d94',
+    address: '0x9922B1A5Aefb3EF4b1B2326421830d3340296E75',
     abi: lendAbi,
     type: 'lend',
   },
