@@ -38,10 +38,10 @@ contract Buy is ReentrancyGuard {
         require(_amount > 0, "Deposit amount is invalid");
         require(rates[_depositToken] > 0, "Token not supported");
         require(IERC20(_depositToken).balanceOf(msg.sender) >= _amount, "Not enough funds");
-        
+
         uint256 tokensToReturn = _amount * rates[_depositToken] / rateMultiplier;
         require(token.balanceOf(admin) > tokensToReturn, "Not enough tokens in reserve");
-        
+
         IERC20(_depositToken).transferFrom(msg.sender, address(this), _amount);
         token.transferFrom(admin, msg.sender, tokensToReturn);
     }
@@ -73,6 +73,10 @@ contract Buy is ReentrancyGuard {
 
     function recoverToken(address _token, uint256 _amount) external onlyAdmin {
         IERC20(_token).safeTransfer(address(msg.sender), _amount);
+    }
+
+    function recoverNativeToken(uint256 _amount) external onlyAdmin {
+        payable(msg.sender).transfer(_amount);
     }
 
     function _isContract(address account) internal view returns (bool) {

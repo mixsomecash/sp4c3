@@ -30,8 +30,8 @@ const Navbar = () => {
         <Flex alignItems="center" display={{ base: 'none', md: 'flex' }}>
           <NavbarLink target="/">Home</NavbarLink>
           <NavbarLink target="/buy">Buy</NavbarLink>
-          <NavbarLink target="/deposit">Deposit</NavbarLink>
-          <NavbarLink target="/withdraw">Withdraw</NavbarLink>
+          <NavbarLink target="/deposit">Borrow</NavbarLink>
+          <NavbarLink target="/withdraw">Pay Back</NavbarLink>
 
           {account && isAuthenticated ? (
             <Flex ml={6}>
