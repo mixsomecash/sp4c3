@@ -7,7 +7,7 @@ const Deposit = () => {
   return (
     <Container maxW="450px">
       <Box fontSize="4xl" fontWeight="bold" textAlign="center" py={16}>
-        DEPOSIT
+        BORROW
       </Box>
       <ExchangeCard contractInfo={contracts.lend} type="deposit" />
     </Container>
