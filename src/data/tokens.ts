@@ -1,7 +1,7 @@
 import { DepositToken } from 'types'
 
 export const primaryToken = {
-  address: '0x3a0c9d181afc5d88827a100b83716e9b412845ac',
+  address: '0x9376495F279Ef7c99b91A24Ee373D784cc74B09e',
   symbol: 'SP4C3',
 }
 
@@ -12,7 +12,7 @@ export const depositTokens: DepositToken[] = [
     icon: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
   },
   {
-    address: '0x74fB2AA2d340c28803AB1c34dD4A701B4e298095',
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     symbol: 'USDT',
     icon: 'https://assets.coingecko.com/coins/images/325/large/Tether-logo.png',
   },
